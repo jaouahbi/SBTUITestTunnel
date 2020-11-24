@@ -162,18 +162,23 @@ static NSTimeInterval SBTUITunneledApplicationDefaultTimeout = 30.0;
         
         [self.delegate testTunnelClientIsReadyToLaunch:self];
     } else {
+        __weak typeof(self)weakSelf = self;
+        
         // [self.delegate testTunnelClientIsReadyToLaunch:self] will synchronously launch the AUT and return once
         // the appDidFinishLaunching did complete.
         //
         // In the meantime we start polling the server with the choosen port
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            [self waitForServerRunning];
+            [weakSelf waitForServerRunning];
             
-            if (self.startupBlock) {
-                self.startupBlock(); // this will eventually add some commands in the startup command queue
-            }
-                    
-            [self sendSynchronousRequestWithPath:SBTUITunneledApplicationCommandStartupCommandsCompleted params:@{}];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                weakSelf.connected = YES;
+                if (weakSelf.startupBlock) {
+                    weakSelf.startupBlock(); // this will eventually add some commands in the startup command queue
+                }
+                        
+                [weakSelf sendSynchronousRequestWithPath:SBTUITunneledApplicationCommandStartupCommandsCompleted params:@{}];
+            });
         });
             
         // This will synchronously launch the AUT and will return once the appDidFinishLaunching did complete
