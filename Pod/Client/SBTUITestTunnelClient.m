@@ -161,8 +161,6 @@ static NSTimeInterval SBTUITunneledApplicationDefaultTimeout = 30.0;
         [self.bonjourBrowser resolveWithTimeout:self.connectionTimeout];
         
         [self.delegate testTunnelClientIsReadyToLaunch:self];
-
-        [self waitForServerRunning];
     } else {
         // [self.delegate testTunnelClientIsReadyToLaunch:self] will synchronously launch the AUT and return once
         // the appDidFinishLaunching did complete.
